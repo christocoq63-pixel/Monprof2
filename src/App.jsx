@@ -2922,6 +2922,18 @@ function wrapSystemForCaching(system, cache) {
   return [{ type: 'text', text, cache_control: { type: 'ephemeral' } }];
 }
 
+// Headers for /api/chat: the server only answers signed-in users, so we
+// attach the current Supabase access token to every request.
+async function chatHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+  } catch { /* no session — the server will answer 401 */ }
+  return headers;
+}
+
 async function chatWithFallback({ system, messages, maxTokens = 500, cache = false }) {
   const models = [
     'claude-haiku-4-5',           // fastest
@@ -2934,7 +2946,7 @@ async function chatWithFallback({ system, messages, maxTokens = 500, cache = fal
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await chatHeaders(),
         body: JSON.stringify({ model, max_tokens: maxTokens, system: sys, messages }),
       });
       if (response.ok) {
@@ -3038,7 +3050,7 @@ async function explainWord(word, context, lang, { onPartial } = {}) {
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await chatHeaders(),
       body: JSON.stringify(payload),
     });
     if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
@@ -5631,7 +5643,7 @@ Respond ONLY with JSON, no code fences. Emit fields IN THIS ORDER — title firs
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await chatHeaders(),
         body: JSON.stringify({
           model, max_tokens: 800, system: cachedSystem,
           messages: [{ role: 'user', content: `Give me a new passage about "${topic.label}".` }],
