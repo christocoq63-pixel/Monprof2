@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  // Expose only the public Supabase values to the browser, whether they are
+  // named VITE_SUPABASE_* or SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY.
+  // (SUPABASE_SERVICE_ROLE_KEY is secret and must NEVER match these prefixes.)
+  envPrefix: ['VITE_', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_ANON_KEY'],
   plugins: [
     react(),
     VitePWA({

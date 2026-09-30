@@ -54,11 +54,13 @@ const COUNTRIES = [
 
 // ─── SUPABASE CLIENT ──────────────────────────────────────────────────────────
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL;
 // Supports both the new PUBLISHABLE_KEY name (2025+) and the legacy ANON_KEY
 const SUPABASE_KEY =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY;
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  import.meta.env.SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.SUPABASE_ANON_KEY;
 const supabase = (SUPABASE_URL && SUPABASE_KEY)
   ? createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;

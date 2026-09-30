@@ -67,7 +67,7 @@ git push -u origin main
    |---|---|---|
    | `ANTHROPIC_API_KEY` | votre clé Claude (`sk-ant-...`) | console.anthropic.com → API Keys |
    | `VITE_SUPABASE_URL` | `https://xxxx.supabase.co` | Supabase → Project Settings → API |
-   | `VITE_SUPABASE_PUBLISHABLE_KEY` | clé publique (`anon` / publishable) | Supabase → Project Settings → API |
+   | `VITE_SUPABASE_PUBLISHABLE_KEY` (ou `SUPABASE_PUBLISHABLE_KEY`) | clé publique (`anon` / publishable) | Supabase → Project Settings → API |
    | `SUPABASE_SERVICE_ROLE_KEY` | clé secrète `service_role` | Supabase → Project Settings → API — ⚠️ **secrète**, ne jamais la mettre dans le code |
 
    L'ancien nom `VITE_SUPABASE_ANON_KEY` fonctionne aussi à la place de

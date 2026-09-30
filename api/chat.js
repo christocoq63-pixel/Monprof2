@@ -33,6 +33,7 @@ async function verifyUser(req) {
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
   const apikey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY
     || process.env.VITE_SUPABASE_ANON_KEY
+    || process.env.SUPABASE_PUBLISHABLE_KEY
     || process.env.SUPABASE_ANON_KEY;
   if (!supabaseUrl || !apikey) return { error: 'Supabase not configured on the server', status: 500 };
 
