@@ -24,38 +24,38 @@ export default async function handler(req) {
     return json({ error: 'Server not configured (missing SUPABASE_SERVICE_ROLE_KEY).' }, 500);
   }
 
-  // Verify the caller: the request must come with the caller's own access token.
-  // We only accept deleting the user_id that matches that token.
+  // The caller MUST prove who they are with their own access token.
+  // The account deleted is always the one identified by that token — never
+  // an id taken from the request body.
   const auth = req.headers.get('authorization') || '';
-  const accessToken = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  const accessToken = auth.startsWith('Bearer ') ? auth.slice(7).trim() : null;
+  if (!accessToken) return json({ error: 'Authentication required' }, 401);
 
-  let body;
-  try { body = await req.json(); } catch { return json({ error: 'Invalid JSON body' }, 400); }
-  const requestedUserId = body?.user_id;
-  if (!requestedUserId) return json({ error: 'user_id is required' }, 400);
+  let body = {};
+  try { body = await req.json(); } catch { /* body is optional */ }
 
-  // Optional check: verify the access token identifies the same user.
-  // If no Authorization header is present, we trust the RLS delete that already ran
-  // and delete the auth user matching the requested id.
-  let callerUserId = requestedUserId;
-  if (accessToken) {
-    try {
-      const meRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
-        headers: { Authorization: `Bearer ${accessToken}`, apikey: serviceKey },
-      });
-      if (meRes.ok) {
-        const me = await meRes.json();
-        callerUserId = me.id;
-        if (callerUserId !== requestedUserId) {
-          return json({ error: 'user_id mismatch' }, 403);
-        }
-      }
-    } catch { /* ignore — fall through to the delete */ }
+  let callerUserId;
+  try {
+    const meRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { Authorization: `Bearer ${accessToken}`, apikey: serviceKey },
+    });
+    if (!meRes.ok) return json({ error: 'Invalid or expired session' }, 401);
+    const me = await meRes.json();
+    callerUserId = me?.id;
+  } catch {
+    return json({ error: 'Could not verify session' }, 502);
   }
+  if (!callerUserId) return json({ error: 'Invalid or expired session' }, 401);
+
+  // If the client also sent a user_id, it must match the token's user.
+  if (body?.user_id && body.user_id !== callerUserId) {
+    return json({ error: 'user_id mismatch' }, 403);
+  }
+  const requestedUserId = callerUserId;
 
   // Delete the auth user with the service_role key.
   try {
-    const delRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${requestedUserId}`, {
+    const delRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(requestedUserId)}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${serviceKey}`,
