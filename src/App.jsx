@@ -2937,7 +2937,6 @@ async function chatHeaders() {
 async function chatWithFallback({ system, messages, maxTokens = 500, cache = false }) {
   const models = [
     'claude-haiku-4-5',           // fastest
-    'claude-3-5-haiku-latest',    // fast, widely available fallback
     'claude-sonnet-4-20250514',   // reliable last resort
   ];
   const sys = wrapSystemForCaching(system, cache);
@@ -5633,7 +5632,7 @@ Respond ONLY with JSON, no code fences. Emit fields IN THIS ORDER — title firs
 }`;
 
   // Try streaming with Haiku models first, then non-streaming Sonnet as last resort.
-  const streamingModels = ['claude-haiku-4-5', 'claude-3-5-haiku-latest'];
+  const streamingModels = ['claude-haiku-4-5'];
   let accumulated = '';
   let streamSucceeded = false;
 
